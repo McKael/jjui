@@ -811,6 +811,8 @@ func ResolveIntent(scope string, action keybindings.Action, args map[string]any)
 			return intents.Cancel{}, true
 		case keybindings.Action("ui.change_theme"):
 			return intents.ChangeTheme{Name: actionargs.StringArg(args, "name", "")}, true
+		case keybindings.Action("ui.close_or_quit"):
+			return intents.CloseOrQuit{}, true
 		case keybindings.Action("ui.exec_jj"):
 			return intents.ExecJJ{}, true
 		case keybindings.Action("ui.exec_shell"):

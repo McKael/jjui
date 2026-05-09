@@ -586,6 +586,12 @@ func (m *Model) HandleIntent(intent intents.Intent) (tea.Cmd, bool) {
 	// --- Quit / Suspend ---
 	case intents.Quit:
 		return common.Quit(), true
+	case intents.CloseOrQuit:
+		// Close the topmost view/state if there is one; otherwise quit.
+		if cmd, closed := m.closeTopView(); closed {
+			return cmd, true
+		}
+		return common.Quit(), true
 	case intents.Suspend:
 		return common.Suspend(), true
 	case intents.ChangeTheme:

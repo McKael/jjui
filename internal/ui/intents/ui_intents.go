@@ -30,6 +30,11 @@ type Quit struct{}
 
 func (Quit) isIntent() {}
 
+//jjui:bind scope=ui action=close_or_quit
+type CloseOrQuit struct{}
+
+func (CloseOrQuit) isIntent() {}
+
 //jjui:bind scope=ui action=suspend
 type Suspend struct{}
 

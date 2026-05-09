@@ -540,6 +540,7 @@ function wait_refresh() end
 ---@field preview jjui.ui.preview
 ---@field cancel fun()
 ---@field change_theme fun(value?: string|{name: string})
+---@field close_or_quit fun()
 ---@field exec_jj fun()
 ---@field exec_shell fun()
 ---@field expand_status fun()

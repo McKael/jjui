@@ -96,6 +96,12 @@ func (sc *SplitContainer) ToggleContent(id string) (tea.Cmd, bool) {
 	return sc.ShowContent(id)
 }
 
+// IsContentActive returns true if the content with the given id is currently
+// the active (visible) pane.
+func (sc *SplitContainer) IsContentActive(id string) bool {
+	return sc.activeContentID != "" && sc.activeContentID == id
+}
+
 func (sc *SplitContainer) Close() bool {
 	content := sc.activeContent()
 	if content == nil {

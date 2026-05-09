@@ -327,6 +327,7 @@ var builtInActionScopes = map[string][]string{
 	"status.input.page_up":                       {"status.input"},
 	"ui.cancel":                                  {"ui"},
 	"ui.change_theme":                            {"ui"},
+	"ui.close_or_quit":                           {"ui"},
 	"ui.exec_jj":                                 {"ui"},
 	"ui.exec_shell":                              {"ui"},
 	"ui.expand_status":                           {"ui"},
