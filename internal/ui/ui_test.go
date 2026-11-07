@@ -335,6 +335,60 @@ func TestWrapperUpdate_ExecMsgRefreshesCachedCursorBeforeExec(t *testing.T) {
 	assert.Nil(t, view.Cursor)
 }
 
+func Test_PreviewBindingsOverrideRevisionsOnlyWhenPreviewIsVisible(t *testing.T) {
+	origBindings := config.Current.Bindings
+	t.Cleanup(func() { config.Current.Bindings = origBindings })
+	config.Current.Bindings = []config.BindingConfig{
+		{Action: "revisions.page_up", Scope: "revisions", Key: config.StringList{"pgup"}},
+		{Action: "revisions.page_down", Scope: "revisions", Key: config.StringList{"pgdown"}},
+	}
+	defaultRunner := test.NewTestCommandRunner(t)
+	defer defaultRunner.Verify()
+	defaultModel := NewUI(test.NewTestContext(defaultRunner))
+	showPreview(t, defaultModel, "preview")
+	for _, key := range []tea.KeyPressMsg{{Code: tea.KeyPgUp}, {Code: tea.KeyPgDown}} {
+		result := defaultModel.resolver.ResolveKey(key, defaultModel.dispatchScopes())
+		require.Equal(t, "revisions", result.Scope, "default preview bindings should remain unchanged")
+		_, ok := result.Intent.(intents.Navigate)
+		require.True(t, ok)
+	}
+
+	config.Current.Bindings = []config.BindingConfig{
+		{Action: "revisions.page_up", Scope: "revisions", Key: config.StringList{"pgup"}},
+		{Action: "revisions.page_down", Scope: "revisions", Key: config.StringList{"pgdown"}},
+		{Action: "ui.preview_half_page_up", Scope: "ui.preview", Key: config.StringList{"pgup"}},
+		{Action: "ui.preview_half_page_down", Scope: "ui.preview", Key: config.StringList{"pgdown"}},
+	}
+
+	commandRunner := test.NewTestCommandRunner(t)
+	defer commandRunner.Verify()
+	model := NewUI(test.NewTestContext(commandRunner))
+
+	for _, tc := range []struct {
+		key       tea.KeyPressMsg
+		wantKind  intents.PreviewScrollKind
+		wantDelta int
+	}{
+		{key: tea.KeyPressMsg{Code: tea.KeyPgUp}, wantKind: intents.PreviewHalfPageUp, wantDelta: -1},
+		{key: tea.KeyPressMsg{Code: tea.KeyPgDown}, wantKind: intents.PreviewHalfPageDown, wantDelta: 1},
+	} {
+		result := model.resolver.ResolveKey(tc.key, model.dispatchScopes())
+		require.Equal(t, "revisions", result.Scope)
+		navigation, ok := result.Intent.(intents.Navigate)
+		require.True(t, ok, "without a preview, the key should navigate revisions")
+		require.Equal(t, tc.wantDelta, navigation.Delta)
+		require.True(t, navigation.IsPage)
+
+		showPreview(t, model, "preview")
+		result = model.resolver.ResolveKey(tc.key, model.dispatchScopes())
+		require.Equal(t, "ui.preview", result.Scope)
+		previewScroll, ok := result.Intent.(intents.PreviewScroll)
+		require.True(t, ok, "with a visible preview, the configured binding should scroll it")
+		assert.Equal(t, tc.wantKind, previewScroll.Kind)
+		model.splitContainer.Close()
+	}
+}
+
 func Test_Update_PreviewScrollKeysWorkWhenVisible(t *testing.T) {
 	tests := []struct {
 		name           string

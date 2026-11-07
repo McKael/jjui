@@ -568,6 +568,11 @@ func (m *Model) dispatchScopes() []common.Scope {
 	primary := m.primary()
 	if top, ok := m.topLayer(); ok && top.model != primary {
 		scopes = append(scopes, top.model.Scopes()...)
+	} else if m.splitContainer.ActiveID() == previewContentID && !m.splitContainer.ContentFocused() {
+		// Preview-specific bindings should override primary-view bindings when
+		// the preview is visible beside the primary view.
+		scopes = append(scopes, m.splitContainer.Scopes(nil)...)
+		scopes = append(scopes, primary.Scopes()...)
 	} else {
 		scopes = append(scopes, m.splitScopes(primary.Scopes())...)
 	}
